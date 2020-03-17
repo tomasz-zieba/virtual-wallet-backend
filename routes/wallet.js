@@ -7,4 +7,10 @@ const router = express.Router();
 
 router.put('/new-wallet', isAuth, waletController.newWallet);
 
+router.get('/wallets', isAuth, waletController.getWallets);
+
+router.get('/wallet/:walletId', isAuth, waletController.getWallet);
+
+router.delete('/wallet/:walletId', isAuth , waletController.deleteWallet);
+
 module.exports = router;
