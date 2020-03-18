@@ -14,6 +14,10 @@ const walletSchema = new Schema ({
         type: String,
         require: true 
     },
+    isFavourite: {
+        type: Boolean,
+        default: false
+    },
     incomes: [{
         category: {
             type: String,
@@ -56,5 +60,15 @@ const walletSchema = new Schema ({
         require: true
     }
 }, { timestamps: true })
+
+walletSchema.methods.addToFavourites = function() {
+    this.isFavourite = true;
+    return this.save();
+};
+
+walletSchema.methods.removeFromFavourites = function() {
+    this.isFavourite = false;
+    return this.save();
+};
 
 module.exports = mongoose.model('Wallet', walletSchema);

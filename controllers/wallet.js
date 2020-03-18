@@ -96,6 +96,63 @@ exports.newWallet = (req, res, next) => {
     })
 };
 
+exports.addToFavourites = (req, res, next) => {
+  const walletId = req.params.walletId;
+  let favWallet;
+  Wallet.findById(walletId)
+    .then(wallet => {
+      favWallet = wallet;
+      favWallet.addToFavourites();
+      return User.findById(req.userId)
+    })
+    .then(user => {
+      creator = user;
+      if(walletId)
+      return user.addToFavourites(favWallet);
+    })
+    .then(result => {
+      res.status(201).json({
+        message: 'Wallet added succesfully!',
+      });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    })
+}
+
+
+exports.removeFromFavourites = (req, res, next) => {
+  const walletId = req.params.walletId;
+  let favWallet;
+  Wallet.findById(walletId)
+    .then(wallet => {
+      favWallet = wallet;
+      favWallet.removeFromFavourites();
+      return User.findById(req.userId)
+    })
+    .then(user => {
+      creator = user;
+      if(walletId)
+      return user.removeFromFavourites(favWallet);
+    })
+    .then(result => {
+      res.status(201).json({
+        message: 'Wallet added succesfully!',
+      });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    })
+}
+
+
+
 exports.deleteWallet = (req, res, next) => {
   const walletId = req.params.walletId;
   Wallet.findById(walletId)
@@ -106,9 +163,9 @@ exports.deleteWallet = (req, res, next) => {
               throw error
           }
           if(wallet.creator.toString() !== req.userId) {
-              const error = new Error('Not authorized.');
-              error.statusCode = 403;
-              throw error
+            const error = new Error('Not authorized.');
+            error.statusCode = 403;
+            throw error
           }
           return Wallet.findByIdAndRemove(walletId);
       })
@@ -130,3 +187,32 @@ exports.deleteWallet = (req, res, next) => {
           next(err);
       })
 }
+
+exports.getFavouritesWallets = (req, res, next) => {
+  const userId = req.userId;
+  User.findById(userId)
+    .then(user => {
+      user
+        .populate('favouritesWallets.walletId')
+        .execPopulate()
+        .then(user => {
+          res.status(201).json({
+            message: 'Favourites wallets fetched succesfully!',
+            wallets: user.favouritesWallets,
+          });
+        })
+        .catch(err => {
+          if (!err.statusCode) {
+            err.statusCode = 500;
+          }
+          next(err);
+        })
+
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    })
+};

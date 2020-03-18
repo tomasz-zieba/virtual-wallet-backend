@@ -18,6 +18,14 @@ const userSchema = new Schema ({
             }
         }
     ],
+    favouritesWallets: [
+        {
+            walletId: {
+                type: Schema.Types.ObjectId,
+                ref: 'Wallet'
+            }
+        }
+    ],
     operationsCategories: {
         type: Object,
         default: {
@@ -36,10 +44,28 @@ userSchema.methods.addToWallets = function(wallet) {
     return this.save();
   };
 
-  userSchema.methods.removeFromWallets = function(walletId) {
+userSchema.methods.addToFavourites = function(wallet) {
+    const updatedFavourites = [...this.favouritesWallets];
+    updatedFavourites.push({
+        walletId: wallet._id,
+        })
+    this.favouritesWallets = updatedFavourites;
+    return this.save();
+};
+
+userSchema.methods.removeFromFavourites = function(wallet) {
+    let updatedFavourites = [...this.favouritesWallets];
+    updatedFavourites = this.favouritesWallets.filter(item => {
+        return wallet._id.toString() !== item.walletId.toString()
+    });
+    this.favouritesWallets = updatedFavourites;
+    return this.save();
+};
+
+userSchema.methods.removeFromWallets = function(walletId) {
     const updatedWalets = this.wallets.filter(wallet => wallet.walletId.toString() !== walletId);
     this.wallets = updatedWalets;
     return this.save();
-  };
+};
 
 module.exports = mongoose.model('User', userSchema);
