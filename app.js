@@ -6,9 +6,10 @@ const mongoose = require('mongoose');
 const multer = require('multer');
 const uuidv4 = require('uuid/v4');
 
-const feedRoutes = require('./routes/feed');
 const authRoutes = require('./routes/auth');
 const walletRoutes = require('./routes/wallet');
+const settingstRoutes = require('./routes/settings');
+
 
 const app = express();
 
@@ -40,19 +41,18 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use('/feed', feedRoutes);
 app.use('/auth', authRoutes);
 app.use(walletRoutes);
+app.use(settingstRoutes);
 
 app.use((err, req, res, next) => {
-    console.log(err);
     const status = err.statusCode || 500;
     const message = err.message;
     const data = err.data
     res.status(status).json({message: message, data: data})
 });
 
-mongoose.connect('mongodb+srv://Tomasz_Zieba:lNsQgsn2bfC3YJPE@cluster0-xaqtt.mongodb.net/wallet?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true')
+mongoose.connect('mongodb+srv://Tomasz_Zieba:lNsQgsn2bfC3YJPE@cluster0-xaqtt.mongodb.net/wallet?authSource=admin&replicaSet=Cluster0-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true',  { useNewUrlParser: true, useUnifiedTopology: true })
     .then( reslt => {
         app.listen(8080);
     })

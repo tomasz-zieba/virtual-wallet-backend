@@ -29,7 +29,7 @@ const walletSchema = new Schema ({
         },
         info: {
             type: String,
-            required: true
+            required: false
         },
         value: {
             type: Number,
@@ -47,7 +47,7 @@ const walletSchema = new Schema ({
         },
         info: {
             type: String,
-            required: true
+            required: false
         },
         value: {
             type: Number,
@@ -71,4 +71,27 @@ walletSchema.methods.removeFromFavourites = function() {
     return this.save();
 };
 
+walletSchema.methods.addNewIncome = function(category, date, info, value) {
+    const newIncome = {
+        category: category,
+        date: date,
+        info: info,
+        value: value
+    }
+    const updatedWalletIncomes = [...this.incomes, newIncome];
+    this.incomes = updatedWalletIncomes;
+    return this.save();
+};
+
+walletSchema.methods.addNewExpense = function(category, date, info, value) {
+    const newExpense = {
+        category: category,
+        date: date,
+        info: info,
+        value: value
+    }
+    const updatedWalletExpenses = [...this.expenses, newExpense];
+    this.expenses = updatedWalletExpenses;
+    return this.save();
+};
 module.exports = mongoose.model('Wallet', walletSchema);

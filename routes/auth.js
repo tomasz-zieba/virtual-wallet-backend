@@ -1,5 +1,5 @@
 const express = require('express');
-const { body } = require('express-validator/check');
+const { body } = require('express-validator');
 
 const User = require('../models/user');
 const authController = require('../controllers/auth');
@@ -9,7 +9,7 @@ router.put('/signup', [
     body('password')
         .trim()
         .isLength({min: 5})
-        .withMessage('Please enter a valid password.'),
+        .withMessage('Password must contain at least 5 characters.'),
     body('name')
         .trim()
         .custom((value, {req}) => {
@@ -19,7 +19,6 @@ router.put('/signup', [
                 }
             })
         })
-        .isLength({min: 5})
         .not()
         .isEmpty()
         .withMessage('Please enter a valid name.')

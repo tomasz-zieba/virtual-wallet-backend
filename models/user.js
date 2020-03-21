@@ -27,11 +27,16 @@ const userSchema = new Schema ({
         }
     ],
     operationsCategories: {
-        type: Object,
-        default: {
-            incomCategories: ['rachunki, zakupy, auto'],
-            expenseCategories: ['rachunki, zakupy, auto']
-        }
+            income: {
+                type: Array,
+                required: true,
+                default: ['rachunki', 'zakupy', 'auto']
+            } ,
+            expense: {
+                type: Array,
+                required: true,
+                default: ['rachunki', 'zakupy', 'auto']
+            }
     }
 })
 
@@ -43,6 +48,12 @@ userSchema.methods.addToWallets = function(wallet) {
     this.wallets = updatedWalets;
     return this.save();
   };
+
+userSchema.methods.removeFromWallets = function(walletId) {
+    const updatedWalets = this.wallets.filter(wallet => wallet.walletId.toString() !== walletId);
+    this.wallets = updatedWalets;
+    return this.save();
+};
 
 userSchema.methods.addToFavourites = function(wallet) {
     const updatedFavourites = [...this.favouritesWallets];
@@ -62,9 +73,22 @@ userSchema.methods.removeFromFavourites = function(wallet) {
     return this.save();
 };
 
-userSchema.methods.removeFromWallets = function(walletId) {
-    const updatedWalets = this.wallets.filter(wallet => wallet.walletId.toString() !== walletId);
-    this.wallets = updatedWalets;
+userSchema.methods.addCategory = function(categoryName, categoryType) {
+    const updatedIncomCategories = [...this.operationsCategories[`${categoryType}`]]
+    if(!updatedIncomCategories.includes(categoryName.trim())) {
+        updatedIncomCategories.push(categoryName)
+    } else {
+        const error = new Error('Category already exist.');
+        error.statusCode = 403;
+        throw error
+    }
+    this.operationsCategories[`${categoryType}`] = updatedIncomCategories;
+    return this.save();
+};
+
+userSchema.methods.removeCategory = function(categoryNamesList, categoryType) {
+    const updatedIncomCategories = this.operationsCategories[`${categoryType}`].filter(item => !categoryNamesList.includes(item));
+    this.operationsCategories[`${categoryType}`] = updatedIncomCategories;
     return this.save();
 };
 
