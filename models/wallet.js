@@ -7,11 +7,11 @@ const walletSchema = new Schema ({
         require: true
     },
     startDate: {
-        type: String,
+        type: Date,
         require: true 
     },
     endDate: {
-        type: String,
+        type: Date,
         require: true 
     },
     isFavourite: {
