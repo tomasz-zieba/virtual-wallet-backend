@@ -51,7 +51,9 @@ userSchema.methods.addToWallets = function(wallet) {
 
 userSchema.methods.removeFromWallets = function(walletId) {
     const updatedWalets = this.wallets.filter(wallet => wallet.walletId.toString() !== walletId);
+    const updatedFavourites = this.favouritesWallets.filter(wallet => wallet.walletId.toString() != walletId);
     this.wallets = updatedWalets;
+    this.favouritesWallets = updatedFavourites;
     return this.save();
 };
 
