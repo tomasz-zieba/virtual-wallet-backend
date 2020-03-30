@@ -60,7 +60,7 @@ userSchema.methods.removeFromWallets = function (walletId) {
   return this.save();
 };
 
-userSchema.methods.addToFavourites = (wallet) => {
+userSchema.methods.addToFavourites = function (wallet) {
   const updatedFavourites = [...this.favouritesWallets];
   updatedFavourites.push({
     walletId: wallet._id,
