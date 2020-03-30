@@ -98,7 +98,7 @@ exports.addToFavourites = (req, res, next) => {
     })
     .then((user) => {
       if (walletId) { return user.addToFavourites(favWallet); }
-      return false;
+      return true;
     })
     .then(() => {
       res.status(201).json({
