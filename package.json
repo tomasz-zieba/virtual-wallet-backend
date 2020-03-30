@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "engines": {
-    "node" : "v10.11.0"
+    "node": "v10.11.0"
   },
   "scripts": {
+    "lint": "eslint",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node app.js",
     "start-server": "node app.js",
@@ -29,6 +30,9 @@
     "uuid": "^7.0.2"
   },
   "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-import": "^2.20.2",
     "nodemon": "^2.0.2"
   }
 }

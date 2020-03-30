@@ -1,240 +1,228 @@
+const { validationResult } = require('express-validator');
 const User = require('../models/user');
 const Wallet = require('../models/wallet');
 
-const { validationResult } = require('express-validator');
-const bcrypt = require('bcryptjs');
 
 exports.getWallets = (req, res, next) => {
-  const userId = req.userId;
+  const { userId } = req;
   User.findById(userId)
-    .then(user => {
-      return user
-        .populate('wallets.walletId')
-        .execPopulate()
+    .then((user) => user
+      .populate('wallets.walletId')
+      .execPopulate())
+    .then((user) => {
+      res.status(201).json({
+        message: 'Wallets fetched succesfully!',
+        wallets: user.wallets,
+      });
     })
-    .then(user => {
-        res.status(201).json({
-            message: 'Wallets fetched succesfully!',
-            wallets: user.wallets,
-          });
-    })
-    .catch(err => {
+    .catch((err) => {
       if (!err.statusCode) {
         err.statusCode = 500;
       }
       next(err);
-    })
+    });
 };
 
 exports.getWallet = (req, res, next) => {
-  const walletId = req.params.walletId;
+  const { walletId } = req.params;
   Wallet.findById(walletId)
-      .then( wallet => {
-          if( !wallet ) {
-            const error = new Error('Could not find wallet.');
-            error.statusCode = 404;
-            throw error
-          }
-          if ( wallet.creator._id.toString() !== req.userId ) {
-            const error = new Error('Not authorized.');
-            error.statusCode = 403;
-            throw error
-          }
-          res.status(200).json({ message: 'Wallet fetched', wallet: wallet});
-      })
-      .catch( err => {
-          if( !err.statusCode ) {
-              err.statusCode = 500;
-          }
-          next(err);
-      })
+    .then((wallet) => {
+      if (!wallet) {
+        const error = new Error('Could not find wallet.');
+        error.statusCode = 404;
+        throw error;
+      }
+      if (wallet.creator._id.toString() !== req.userId) {
+        const error = new Error('Not authorized.');
+        error.statusCode = 403;
+        throw error;
+      }
+      res.status(200).json({ message: 'Wallet fetched', wallet });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
 };
 
 exports.newWallet = (req, res, next) => {
   const errors = validationResult(req);
-    if(!errors.isEmpty() ) {
-        const error = new Error();
-        error.statusCode = 422;
-        error.msg = errors.msg
-        throw error;
-    }
-  const title = req.body.title;
-  const startDate = req.body.startDate;
-  const endDate = req.body.endDate;
-  let creator = req.userId
+  if (!errors.isEmpty()) {
+    const error = new Error();
+    error.statusCode = 422;
+    error.msg = errors.msg;
+    throw error;
+  }
+  const { title } = req.body;
+  const { startDate } = req.body;
+  const { endDate } = req.body;
+  let creator = req.userId;
   const wallet = new Wallet({
-    title: title,
-    startDate: startDate,
-    endDate: endDate,
+    title,
+    startDate,
+    endDate,
     incomes: [],
     expenses: [],
-    creator: creator
+    creator,
   });
   wallet.save()
-    .then(result => {
-      return User.findById(req.userId);
-    })
-    .then(user => {
+    .then(() => User.findById(req.userId))
+    .then((user) => {
       creator = user;
       return user.addToWallets(wallet);
     })
-    .then(result => {
+    .then(() => {
       res.status(201).json({
         message: 'Wallet created successfully!',
-        test: 'test'
+        test: 'test',
       });
     })
-    .catch(err => {
+    .catch((err) => {
       if (!err.statusCode) {
         err.statusCode = 500;
       }
       next(err);
-    })
+    });
 };
 
 exports.addToFavourites = (req, res, next) => {
-  const walletId = req.params.walletId;
+  const { walletId } = req.params;
   let favWallet;
   Wallet.findById(walletId)
-    .then(wallet => {
+    .then((wallet) => {
       favWallet = wallet;
       favWallet.addToFavourites();
-      return User.findById(req.userId)
+      return User.findById(req.userId);
     })
-    .then(user => {
-      creator = user;
-      if(walletId)
-      return user.addToFavourites(favWallet);
+    .then((user) => {
+      if (walletId) { return user.addToFavourites(favWallet); }
+      return false;
     })
-    .then(result => {
+    .then(() => {
       res.status(201).json({
         message: 'Wallet added to favourites succesfully!',
       });
     })
-    .catch(err => {
+    .catch((err) => {
       if (!err.statusCode) {
         err.statusCode = 500;
       }
       next(err);
-    })
-}
+    });
+};
 
 
 exports.removeFromFavourites = (req, res, next) => {
-  const walletId = req.params.walletId;
+  const { walletId } = req.params;
   let favWallet;
   Wallet.findById(walletId)
-    .then(wallet => {
+    .then((wallet) => {
       favWallet = wallet;
       favWallet.removeFromFavourites();
-      return User.findById(req.userId)
+      return User.findById(req.userId);
     })
-    .then(user => {
-      creator = user;
-      if(walletId)
-      return user.removeFromFavourites(favWallet);
+    .then((user) => {
+      if (walletId) { return user.removeFromFavourites(favWallet); }
+      return true;
     })
-    .then(result => {
+    .then(() => {
       res.status(201).json({
         message: 'Wallet removed from favourites succesfully!',
       });
     })
-    .catch(err => {
+    .catch((err) => {
       if (!err.statusCode) {
         err.statusCode = 500;
       }
       next(err);
-    })
-}
-
+    });
+};
 
 
 exports.deleteWallet = (req, res, next) => {
-  const walletId = req.params.walletId;
+  const { walletId } = req.params;
   Wallet.findById(walletId)
-      .then( wallet => {
-          if(!wallet) {
-            const error = new Error('Could not find wallet.');
-            error.statusCode = 404;
-            throw error
-          }
-          if(wallet.creator.toString() !== req.userId) {
-            const error = new Error('Not authorized.');
-            error.statusCode = 403;
-            throw error
-          }
-          return Wallet.findByIdAndRemove(walletId);
-      })
-      .then( result => {
-          return User.findById(req.userId)
-      })
-      .then( user => {
-          user.removeFromWallets(walletId);
-      })
-      .then(result => {
-          res.status(200).json({
-              message: 'Wallet was succesfull deleted.',
-          });
-      })
-      .catch( err => {
-          if( !err.statusCode ) {
-              err.statusCode = 500;
-          }
-          next(err);
-      })
-}
+    .then((wallet) => {
+      if (!wallet) {
+        const error = new Error('Could not find wallet.');
+        error.statusCode = 404;
+        throw error;
+      }
+      if (wallet.creator.toString() !== req.userId) {
+        const error = new Error('Not authorized.');
+        error.statusCode = 403;
+        throw error;
+      }
+      return Wallet.findByIdAndRemove(walletId);
+    })
+    .then(() => User.findById(req.userId))
+    .then((user) => {
+      user.removeFromWallets(walletId);
+    })
+    .then(() => {
+      res.status(200).json({
+        message: 'Wallet was succesfull deleted.',
+      });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
 
 exports.getFavouritesWallets = (req, res, next) => {
-  const userId = req.userId;
+  const { userId } = req;
   User.findById(userId)
-    .then(user => {
-      return user
-        .populate('favouritesWallets.walletId')
-        .execPopulate()
-    })
-    .then(user => {
+    .then((user) => user
+      .populate('favouritesWallets.walletId')
+      .execPopulate())
+    .then((user) => {
       res.status(201).json({
         message: 'Favourites wallets fetched succesfully!',
         wallets: user.favouritesWallets,
       });
     })
-    .catch(err => {
+    .catch((err) => {
       if (!err.statusCode) {
         err.statusCode = 500;
       }
       next(err);
-    })
+    });
 };
 
 exports.addNewIncome = (req, res, next) => {
   const errors = validationResult(req);
-  if(!errors.isEmpty() ) {
-      const error = new Error('Validation failed.');
-      error.statusCode = 422;
-      error.msg = errors.msg
-      throw error;
+  if (!errors.isEmpty()) {
+    const error = new Error('Validation failed.');
+    error.statusCode = 422;
+    error.msg = errors.msg;
+    throw error;
   }
-  const walletId = req.body.walletId;
-  const category = req.body.category;
-  const date = req.body.date;
-  const info = req.body.info;
-  const value = req.body.value;
+  const { walletId } = req.body;
+  const { category } = req.body;
+  const { date } = req.body;
+  const { info } = req.body;
+  const { value } = req.body;
 
   Wallet.findById(walletId)
-    .then(wallet => {
-      if(!wallet) {
+    .then((wallet) => {
+      if (!wallet) {
         const error = new Error('Could not find wallet.');
         error.statusCode = 404;
-        throw error
+        throw error;
       }
-      if(wallet.creator.toString() !== req.userId) {
+      if (wallet.creator.toString() !== req.userId) {
         const error = new Error('Not authorized.');
         error.statusCode = 403;
-        throw error
+        throw error;
       }
       return wallet.addNewIncome(category, date, info, value);
     })
-    .then(result => {
+    .then((result) => {
       const addedIncomedata = result.incomes[result.incomes.length - 1];
       res.status(201).json({
         message: 'Income added succesfully!',
@@ -242,46 +230,46 @@ exports.addNewIncome = (req, res, next) => {
         date: addedIncomedata.date,
         info: addedIncomedata.info,
         value: addedIncomedata.value,
-        operationId: addedIncomedata._id.toString()
+        operationId: addedIncomedata._id.toString(),
       });
     })
-    .catch(err => {
+    .catch((err) => {
       if (!err.statusCode) {
         err.statusCode = 500;
       }
       next(err);
-    })
-}
+    });
+};
 
 exports.addNewExpense = (req, res, next) => {
   const errors = validationResult(req);
-  if(!errors.isEmpty() ) {
-      const error = new Error('Validation failed.');
-      error.statusCode = 422;
-      error.msg = errors.msg
-      throw error;
+  if (!errors.isEmpty()) {
+    const error = new Error('Validation failed.');
+    error.statusCode = 422;
+    error.msg = errors.msg;
+    throw error;
   }
-  const walletId = req.body.walletId;
-  const category = req.body.category;
-  const date = req.body.date;
-  const info = req.body.info;
-  const value = req.body.value;
+  const { walletId } = req.body;
+  const { category } = req.body;
+  const { date } = req.body;
+  const { info } = req.body;
+  const { value } = req.body;
 
   Wallet.findById(walletId)
-    .then(wallet => {
-      if(!wallet) {
+    .then((wallet) => {
+      if (!wallet) {
         const error = new Error('Could not find wallet.');
         error.statusCode = 404;
-        throw error
+        throw error;
       }
-      if(wallet.creator.toString() !== req.userId) {
+      if (wallet.creator.toString() !== req.userId) {
         const error = new Error('Not authorized.');
         error.statusCode = 403;
-        throw error
+        throw error;
       }
       return wallet.addNewExpense(category, date, info, value);
     })
-    .then(result => {
+    .then((result) => {
       const addedExpensedata = result.expenses[result.expenses.length - 1];
       res.status(201).json({
         message: 'Income added succesfully!',
@@ -289,13 +277,13 @@ exports.addNewExpense = (req, res, next) => {
         date: addedExpensedata.date,
         info: addedExpensedata.info,
         value: addedExpensedata.value,
-        operationId: addedExpensedata._id.toString()
+        operationId: addedExpensedata._id.toString(),
       });
     })
-    .catch(err => {
+    .catch((err) => {
       if (!err.statusCode) {
         err.statusCode = 500;
       }
       next(err);
-    })
-}
+    });
+};
