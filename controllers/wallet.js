@@ -76,7 +76,6 @@ exports.newWallet = (req, res, next) => {
     .then(() => {
       res.status(201).json({
         message: 'Wallet created successfully!',
-        test: 'test',
       });
     })
     .catch((err) => {
@@ -98,7 +97,10 @@ exports.addToFavourites = (req, res, next) => {
     })
     .then((user) => {
       if (walletId) { return user.addToFavourites(favWallet); }
-      return true;
+
+      const error = new Error('Could not find wallet or user.');
+      error.statusCode = 404;
+      throw error;
     })
     .then(() => {
       res.status(201).json({
@@ -125,7 +127,10 @@ exports.removeFromFavourites = (req, res, next) => {
     })
     .then((user) => {
       if (walletId) { return user.removeFromFavourites(favWallet); }
-      return true;
+
+      const error = new Error('Could not find wallet or user.');
+      error.statusCode = 404;
+      throw error;
     })
     .then(() => {
       res.status(201).json({
