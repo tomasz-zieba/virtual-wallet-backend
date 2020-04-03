@@ -43,7 +43,7 @@ const userSchema = new Schema({
   },
 });
 
-userSchema.methods.addToWallets = function (wallet) {
+userSchema.methods.addWallet = function (wallet) {
   const updatedWalets = [...this.wallets];
   updatedWalets.push({
     walletId: wallet._id,
