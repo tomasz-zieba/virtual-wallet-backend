@@ -44,25 +44,25 @@ exports.getWallet = async (req, res, next) => {
 
 exports.newWallet = async (req, res, next) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error();
-    error.statusCode = 422;
-    error.msg = errors.msg;
-    throw error;
-  }
-  const { title } = req.body;
-  const { startDate } = req.body;
-  const { endDate } = req.body;
-  const creator = req.userId;
-  const wallet = new Wallet({
-    title,
-    startDate,
-    endDate,
-    incomes: [],
-    expenses: [],
-    creator,
-  });
   try {
+    if (!errors.isEmpty()) {
+      const error = new Error();
+      error.statusCode = 422;
+      error.msg = errors.msg;
+      throw error;
+    }
+    const { title } = req.body;
+    const { startDate } = req.body;
+    const { endDate } = req.body;
+    const creator = req.userId;
+    const wallet = new Wallet({
+      title,
+      startDate,
+      endDate,
+      incomes: [],
+      expenses: [],
+      creator,
+    });
     await wallet.save();
     const user = await User.findById(req.userId);
     await user.addWallet(wallet);
